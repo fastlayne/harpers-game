@@ -1,91 +1,34 @@
-import pygame as pg
-import math,random
-
-pg.init()
-W,H=800,600
-scr=pg.display.set_mode((W,H))
-pg.display.set_caption('Artillery Game')
-
-class Tank:
-    def __init__(s,x,p):
-        s.x,s.y,s.p,s.a,s.p=x,0,p,45,50
-    def draw(s):
-        pg.draw.rect(scr,(0,255,0),(s.x-10,H-s.y-20,20,20))
-        ex=s.x+math.cos(math.radians(s.a))*20
-        ey=H-(s.y+math.sin(math.radians(s.a))*20)
-        pg.draw.line(scr,(0,255,0),(s.x,H-s.y),((ex,ey)),4)
-
-def gen_terrain():
-    y=[random.randint(100,400)]
-    for i in range(W-1):
-        y.append(y[-1]+random.randint(-2,2))
-        if y[-1]<100:y[-1]=100
-        if y[-1]>400:y[-1]=400
-    return y
-
-class Explosion:
-    def __init__(s,x,y):
-        s.x,s.y,s.r,s.f=x,y,0,0
-    def draw(s):
-        s.r+=1
-        s.f+=1
-        pg.draw.circle(scr,(255,random.randint(0,255),0),(int(s.x),H-int(s.y)),s.r)
-        return s.f>10
-
-class Shell:
-    def __init__(s,x,y,a,p):
-        s.x,s.y=x,y
-        s.vx=math.cos(math.radians(a))*p/2
-        s.vy=math.sin(math.radians(a))*p/2
-    def move(s,wind):
-        s.x+=s.vx+wind
-        s.y+=s.vy
-        s.vy-=0.1
-        return s.x<0 or s.x>W or s.y<0
-    def draw(s):
-        pg.draw.circle(scr,(255,0,0),(int(s.x),H-int(s.y)),2)
-
-terr=gen_terrain()
-p1=Tank(100,1)
-p2=Tank(700,2)
-plr,shell=1,None
-wind=random.uniform(-0.5,0.5)
-explosion=None
-
+import pygame as p,math as m,random as r
+W,H=800,600;p.init();s=p.display.set_mode((W,H))
+class T:
+ def __init__(s,x):s.x,s.y,s.a,s.p=x,0,45,50
+ def d(s):
+  p.draw.rect(s,(0,255,0),(s.x-10,H-20,20,20))
+  e=s.x+m.cos(m.radians(s.a))*20;f=H-(m.sin(m.radians(s.a))*20)
+  p.draw.line(s,(0,255,0),(s.x,H),(e,f),4)
+class B:
+ def __init__(s,x,y,a,w):
+  s.x,s.y=x,y;s.v=m.cos(m.radians(a))*25;s.u=m.sin(m.radians(a))*25;s.w=w
+ def m(s):
+  s.x+=s.v+s.w;s.y+=s.u;s.u-=.5
+  return s.x<0 or s.x>W or s.y<0
+g=[r.randint(100,400)]+[min(400,max(100,g[-1]+r.randint(-2,2)))for _ in range(W-1)]if'g'in locals()else[300]*W
+t=[T(50),T(750)];c=0;b=None;w=r.random()-.5
 while 1:
-    for e in pg.event.get():
-        if e.type==pg.QUIT:exit()
-        if e.type==pg.KEYDOWN and not shell:
-            if e.key==pg.K_SPACE:
-                t=p1 if plr==1 else p2
-                shell=Shell(t.x,t.y,t.a,t.p)
-                plr=3-plr
-                wind=random.uniform(-0.5,0.5)
-    
-    if not shell:
-        t=p1 if plr==1 else p2
-        k=pg.key.get_pressed()
-        if k[pg.K_LEFT]:t.a=min(90,t.a+1)
-        if k[pg.K_RIGHT]:t.a=max(0,t.a-1)
-        if k[pg.K_UP]:t.p=min(100,t.p+1)
-        if k[pg.K_DOWN]:t.p=max(0,t.p-1)
-    
-    scr.fill((135,206,235))
-    pg.draw.line(scr,(255,255,255),(10,30),(10+wind*50,30),3)
-    for i in range(W-1):
-        pg.draw.line(scr,(101,67,33),(i,H-terr[i]),(i+1,H-terr[i+1]))
-    p1.draw()
-    p2.draw()
-    
-    if shell:
-        shell.draw()
-        if shell.move(wind):
-            explosion=Explosion(shell.x,shell.y)
-            shell=None
-    
-    if explosion:
-        if explosion.draw():
-            explosion=None
-    
-    pg.display.flip()
-    pg.time.Clock().tick(60)
+ for e in p.event.get():
+  if e.type==12:exit()
+  if e.type==p.KEYDOWN and e.key==32 and not b:
+   b=B(t[c].x,0,t[c].a,w);c=1-c;w=r.random()-.5
+ if not b:
+  k=p.key.get_pressed();d=t[c]
+  if k[p.K_LEFT]:d.a=min(90,d.a+1)
+  if k[p.K_RIGHT]:d.a=max(0,d.a-1)
+  if k[p.K_UP]:d.p=min(100,d.p+1)
+  if k[p.K_DOWN]:d.p=max(0,d.p-1)
+ s.fill((135,206,235))
+ for i in range(W-1):p.draw.line(s,(101,67,33),(i,H-g[i]),(i+1,H-g[i+1]))
+ for t in t:t.d()
+ if b:
+  p.draw.circle(s,(255,0,0),(int(b.x),H-int(b.y)),2)
+  if b.m():b=None
+ p.display.flip();p.time.Clock().tick(60)
